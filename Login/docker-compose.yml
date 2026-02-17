@@ -1,0 +1,38 @@
+
+
+services:
+  web:
+    image: php:7.4-apache
+    container_name: my_php_login
+    volumes:
+      - ./src:/var/www/html/
+    ports:
+      - "8082:80"
+    depends_on:
+      - db
+    command: bash -c "docker-php-ext-install mysqli pdo pdo_mysql && apache2-foreground"
+
+  db:
+    image: mysql:8.0
+    container_name: my_mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: login_db
+      MYSQL_USER: user1
+      MYSQL_PASSWORD: user1232
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: my_php_myadmin
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: root123
+
+volumes:
+  db_data:

@@ -1,0 +1,741 @@
+<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>เอกสารสรุปโปรเจค</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Kanit',sans-serif;background:#fff;color:#333;line-height:1.8;padding:40px;max-width:950px;margin:0 auto}h1{font-size:28px;color:#7c3aed;border-bottom:3px solid #7c3aed;padding-bottom:10px;margin-bottom:30px}h2{font-size:22px;color:#1f2937;margin:30px 0 15px;padding:10px 0;border-bottom:1px solid #ddd}p,li{font-size:15px;margin-bottom:8px}ol,ul{padding-left:24px;margin-bottom:16px}pre{background:#1e1e1e;color:#d4d4d4;padding:16px;overflow-x:auto;font-size:12px;font-family:'Courier New',monospace;margin:10px 0 20px;line-height:1.5;white-space:pre-wrap;word-wrap:break-word}table{width:100%;border-collapse:collapse;margin:15px 0;font-size:14px}th,td{padding:10px 12px;border:1px solid #ddd;text-align:left}th{background:#f3f4f6;font-weight:600}.fb{background:#f8f9fa;border:1px solid #e5e7eb;border-left:4px solid #7c3aed;padding:20px;margin:15px 0}.fn{font-size:18px;font-weight:700;color:#7c3aed;margin-bottom:8px}.bd{display:inline-block;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:600;background:#e0e7ff;color:#4338ca}.fl{background:#f0fdf4;border:1px solid #bbf7d0;padding:16px;margin:15px 0}.ib{background:#eff6ff;border:1px solid #bfdbfe;padding:16px;margin:15px 0}.wb{background:#fef2f2;border:1px solid #fecaca;padding:16px;margin:15px 0}.pb{page-break-before:always}@media print{body{padding:20px}pre{font-size:10px}}</style></head><body>
+<h1>เอกสารสรุปโปรเจค — User Management System</h1>
+<div class="ib"><strong>จำนวนไฟล์:</strong> 12 ไฟล์ | <strong>เทคโนโลยี:</strong> PHP 7.4+, MySQL 8.0, Docker | <strong>อัปเดต:</strong> 15 ก.พ. 2026</div>
+<h2>ภาพรวมโครงสร้างไฟล์</h2><table><tr><th>#</th><th>ไฟล์</th><th>ประเภท</th><th>หน้าที่</th></tr><tr><td>1</td><td>db.php</td><td><span class="bd">Include</span></td><td>เชื่อมต่อฐานข้อมูล MySQL</td></tr><tr><td>2</td><td>sidebar.php</td><td><span class="bd">Include</span></td><td>เมนูด้านข้าง + CSS Reset</td></tr><tr><td>3</td><td>index.php</td><td><span class="bd">หน้าเว็บ</span></td><td>หน้า Login (จุดเริ่มต้น)</td></tr><tr><td>4</td><td>ck_login.php</td><td><span class="bd">ตัวประมวลผล</span></td><td>ตรวจสอบ username/password</td></tr><tr><td>5</td><td>ck_logout.php</td><td><span class="bd">ตัวประมวลผล</span></td><td>ออกจากระบบ</td></tr><tr><td>6</td><td>forgot.php</td><td><span class="bd">หน้าเว็บ</span></td><td>ลืมรหัสผ่าน + สร้าง Token</td></tr><tr><td>7</td><td>reset_password.php</td><td><span class="bd">หน้าเว็บ</span></td><td>ตั้งรหัสผ่านใหม่</td></tr><tr><td>8</td><td>dashboard.php</td><td><span class="bd">หน้าเว็บ (Admin)</span></td><td>แดชบอร์ด Admin</td></tr><tr><td>9</td><td>search.php</td><td><span class="bd">หน้าเว็บ</span></td><td>ค้นหาผู้ใช้</td></tr><tr><td>10</td><td>userlist.php</td><td><span class="bd">หน้าเว็บ (Admin)</span></td><td>แสดง/ลบผู้ใช้</td></tr><tr><td>11</td><td>Restore.php</td><td><span class="bd">หน้าเว็บ (Admin)</span></td><td>คืนค่าผู้ใช้ที่ถูกลบ</td></tr><tr><td>12</td><td>get_user_stats.php</td><td><span class="bd">API</span></td><td>สถิติผู้ใช้ JSON</td></tr></table>
+<h2>Flow การทำงาน</h2>
+<div class="fl"><strong>ลำดับหลัก:</strong><ol><li>ผู้ใช้เปิดเว็บ → index.php (Login)</li><li>กรอก username+password → ck_login.php ตรวจสอบ</li><li>Admin → dashboard.php / User → search.php</li><li>ใช้งาน → search, userlist, Restore</li><li>ออกจากระบบ → ck_logout.php → กลับ index.php</li></ol></div>
+<div class="fl"><strong>Flow ลืมรหัสผ่าน:</strong><ol><li>index.php → กด "ลืมรหัสผ่าน?"</li><li>forgot.php → กรอก username → ได้ลิงก์ reset</li><li>reset_password.php?token=xxx → กรอกรหัสใหม่ → เสร็จ</li></ol></div>
+<h2>ลำดับการเขียนไฟล์</h2><div class="fl"><ol><li><strong>db.php</strong> — เชื่อมต่อฐานข้อมูล MySQL</li><li><strong>sidebar.php</strong> — เมนูด้านข้าง + CSS Reset</li><li><strong>index.php</strong> — หน้า Login (จุดเริ่มต้น)</li><li><strong>ck_login.php</strong> — ตรวจสอบ username/password</li><li><strong>ck_logout.php</strong> — ออกจากระบบ</li><li><strong>forgot.php</strong> — ลืมรหัสผ่าน + สร้าง Token</li><li><strong>reset_password.php</strong> — ตั้งรหัสผ่านใหม่</li><li><strong>dashboard.php</strong> — แดชบอร์ด Admin</li><li><strong>search.php</strong> — ค้นหาผู้ใช้</li><li><strong>userlist.php</strong> — แสดง/ลบผู้ใช้</li><li><strong>Restore.php</strong> — คืนค่าผู้ใช้ที่ถูกลบ</li><li><strong>get_user_stats.php</strong> — สถิติผู้ใช้ JSON</li></ol></div>
+<h2>โครงสร้างฐานข้อมูล (ตาราง users)</h2><table><tr><th>Column</th><th>Type</th><th>คำอธิบาย</th></tr><tr><td>id</td><td>INT PK Auto</td><td>รหัสผู้ใช้</td></tr><tr><td>username</td><td>VARCHAR</td><td>ชื่อผู้ใช้</td></tr><tr><td>password</td><td>VARCHAR</td><td>รหัสผ่าน (hashed)</td></tr><tr><td>role</td><td>VARCHAR</td><td>admin หรือ user</td></tr><tr><td>deleted_at</td><td>DATETIME</td><td>NULL=ปกติ / มีค่า=ถูกลบ</td></tr><tr><td>is_deleted</td><td>TINYINT</td><td>0=ปกติ / 1=ถูกลบ</td></tr><tr><td>reset_token</td><td>VARCHAR</td><td>Token reset รหัสผ่าน</td></tr><tr><td>token_expire</td><td>DATETIME</td><td>เวลาหมดอายุ token</td></tr></table>
+<h2>ฟังก์ชัน PHP สำคัญ</h2><table><tr><th>ฟังก์ชัน</th><th>ใช้ทำอะไร</th></tr><tr><td>session_start()</td><td>เริ่ม session เก็บข้อมูลผู้ใช้ข้ามหน้า</td></tr><tr><td>password_hash()</td><td>เข้ารหัสรหัสผ่านก่อนบันทึก</td></tr><tr><td>password_verify()</td><td>เปรียบเทียบรหัสผ่านกับ hash</td></tr><tr><td>prepare()+bind_param()</td><td>SQL ปลอดภัย ป้องกัน Injection</td></tr><tr><td>header("Location:")</td><td>redirect เปลี่ยนหน้า</td></tr><tr><td>htmlspecialchars()</td><td>ป้องกัน XSS</td></tr><tr><td>bin2hex(random_bytes())</td><td>สร้าง token สุ่ม</td></tr><tr><td>json_encode()</td><td>แปลงเป็น JSON</td></tr></table>
+<h2 class="pb">ซอร์สโค้ดเต็ม — ทุกไฟล์ (12 ไฟล์)</h2>
+<div class="wb"><strong>หมายเหตุ:</strong> โค้ดด้านล่างเป็นโค้ดเต็มทุกบรรทัด ทุกตัวอักษร ไม่ได้ตัดออก</div><div class="fb"><div class="fn">1. db.php <span class="bd">Include</span></div>
+<p><strong>หน้าที่:</strong> เชื่อมต่อฐานข้อมูล MySQL</p><p><strong>คำอธิบาย:</strong> เชื่อมต่อ MySQL ด้วย host, user, password, dbname ได้ตัวแปร $conn สำหรับ query ทุกไฟล์ที่ใช้ DB จะ include ไฟล์นี้</p>
+<p><strong>บรรทัด:</strong> 13 | <strong>ขนาด:</strong> 239 bytes</p></div><pre>&lt;?php
+$host = &quot;db&quot;;
+$user = &quot;user1&quot;;
+$password = &quot;user1232&quot;;
+$dbname = &quot;login_db&quot;;
+
+$conn = new mysqli($host, $user, $password, $dbname);
+if ($conn-&gt;connect_error) {
+    die(&quot;Connection failed: &quot; . $conn-&gt;connect_error);
+}
+
+?&gt;
+</pre><div class="fb"><div class="fn">2. sidebar.php <span class="bd">Include</span></div>
+<p><strong>หน้าที่:</strong> เมนูด้านข้าง + CSS Reset</p><p><strong>คำอธิบาย:</strong> มี 3 ส่วน: (1) CSS Reset + responsive sidebar (2) HTML sidebar มีเมนูลิงก์ + ปุ่ม logout (3) JavaScript เปิด/ปิด sidebar บนมือถือ ใช้ใน dashboard search userlist Restore</p>
+<p><strong>บรรทัด:</strong> 88 | <strong>ขนาด:</strong> 3194 bytes</p></div><pre>&lt;?php ?&gt;
+&lt;style&gt;
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0
+    }
+
+    body {
+        font-family: 'Kanit', sans-serif;
+        background: #f5f5f5
+    }
+
+    a {
+        text-decoration: none;
+        color: inherit
+    }
+
+    button {
+        cursor: pointer;
+        border: none;
+        font-family: inherit
+    }
+
+    table {
+        border-collapse: collapse;
+        width: 100%
+    }
+
+    #sidebar {
+        transform: translateX(-100%);
+        transition: transform .15s
+    }
+
+    #sidebar.open {
+        transform: translateX(0)
+    }
+
+    .overlay {
+        display: none
+    }
+
+    @media(min-width:1024px) {
+        #sidebar {
+            transform: translateX(0)
+        }
+
+        .sidebar-toggle {
+            display: none
+        }
+
+        .overlay {
+            display: none !important
+        }
+
+        .main-content {
+            margin-left: 250px
+        }
+    }
+&lt;/style&gt;
+&lt;aside id=&quot;sidebar&quot;
+    style=&quot;position:fixed;left:0;top:0;width:250px;height:100vh;background:#fff;padding:20px;overflow-y:auto;z-index:35;border-right:1px solid #ddd;&quot;&gt;
+    &lt;h1 style=&quot;font-size:20px;margin-bottom:30px;color:#7c3aed;&quot;&gt;&lt;i class=&quot;ri-dashboard-3-line&quot;&gt;&lt;/i&gt; Admin&lt;/h1&gt;
+    &lt;nav&gt;
+        &lt;a href=&quot;dashboard.php&quot; style=&quot;display:block;padding:10px;margin-bottom:4px;color:#333;&quot;&gt;&lt;i
+                class=&quot;ri-dashboard-3-line&quot;&gt;&lt;/i&gt; แดชบอร์ด&lt;/a&gt;
+        &lt;a href=&quot;userlist.php&quot; style=&quot;display:block;padding:10px;margin-bottom:4px;color:#333;&quot;&gt;&lt;i
+                class=&quot;ri-user-line&quot;&gt;&lt;/i&gt; รายชื่อผู้ใช้&lt;/a&gt;
+        &lt;a href=&quot;search.php&quot; style=&quot;display:block;padding:10px;margin-bottom:4px;color:#333;&quot;&gt;&lt;i
+                class=&quot;ri-search-line&quot;&gt;&lt;/i&gt; ค้นหาผู้ใช้&lt;/a&gt;
+        &lt;a href=&quot;Restore.php&quot; style=&quot;display:block;padding:10px;margin-bottom:4px;color:#333;&quot;&gt;&lt;i
+                class=&quot;ri-refresh-line&quot;&gt;&lt;/i&gt; คืนค่าผู้ใช้&lt;/a&gt;
+    &lt;/nav&gt;
+    &lt;div style=&quot;margin-top:auto;padding-top:20px;border-top:1px solid #ddd;&quot;&gt;
+        &lt;a href=&quot;ck_logout.php&quot; onclick=&quot;return confirm('คุณต้องการออกจากระบบหรือไม่?');&quot;
+            style=&quot;display:block;padding:10px;color:#dc2626;&quot;&gt;&lt;i class=&quot;ri-logout-box-r-line&quot;&gt;&lt;/i&gt; ออกจากระบบ&lt;/a&gt;
+    &lt;/div&gt;
+&lt;/aside&gt;
+&lt;button class=&quot;sidebar-toggle&quot; id=&quot;sidebarToggle&quot;
+    style=&quot;position:fixed;top:10px;left:10px;z-index:40;background:#7c3aed;color:#fff;padding:8px;border-radius:4px;&quot;&gt;&lt;i
+        class=&quot;ri-menu-2-line&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+&lt;div class=&quot;overlay&quot; id=&quot;overlay&quot; style=&quot;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:30;&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+    const sidebar = document.getElementById('sidebar'), sidebarToggle = document.getElementById('sidebarToggle'), overlay = document.getElementById('overlay');
+    function toggleSidebar() { sidebar.classList.toggle('open'); overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none'; }
+    sidebarToggle.addEventListener('click', toggleSidebar);
+    overlay.addEventListener('click', toggleSidebar);
+&lt;/script&gt;</pre><div class="fb"><div class="fn">3. index.php <span class="bd">หน้าเว็บ</span></div>
+<p><strong>หน้าที่:</strong> หน้า Login (จุดเริ่มต้น)</p><p><strong>คำอธิบาย:</strong> ตรวจก่อนว่า login แล้วหรือยัง ถ้าใช่ redirect ไป search.php ถ้าไม่แสดงฟอร์ม username/password ส่งไป ck_login.php มีลิงก์ลืมรหัสผ่านไป forgot.php</p>
+<p><strong>บรรทัด:</strong> 58 | <strong>ขนาด:</strong> 2077 bytes</p></div><pre>&lt;?php
+session_start();
+if (isset($_SESSION['user_id'])) {
+    header(&quot;Location: search.php&quot;);
+    exit();
+}
+?&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;th&quot;&gt;
+
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1.0&quot;&gt;
+    &lt;title&gt;Login&lt;/title&gt;
+    &lt;link href=&quot;https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+    &lt;style&gt;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: #f5f5f5
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            font-family: inherit
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+
+&lt;body style=&quot;display:flex;align-items:center;justify-content:center;min-height:100vh;&quot;&gt;
+    &lt;div style=&quot;background:#fff;padding:30px;width:360px;border:1px solid #ddd;&quot;&gt;
+        &lt;h2 style=&quot;text-align:center;margin-bottom:20px;&quot;&gt;เข้าสู่ระบบ&lt;/h2&gt;
+        &lt;form action=&quot;ck_login.php&quot; method=&quot;POST&quot;&gt;
+            &lt;label&gt;ชื่อผู้ใช้&lt;/label&gt;
+            &lt;input type=&quot;text&quot; name=&quot;username&quot; placeholder=&quot;กรอกชื่อผู้ใช้&quot; required
+                style=&quot;width:100%;padding:10px;margin:8px 0 16px;border:1px solid #ccc;&quot;&gt;
+            &lt;label&gt;รหัสผ่าน&lt;/label&gt;
+            &lt;input type=&quot;password&quot; name=&quot;password&quot; placeholder=&quot;กรอกรหัสผ่าน&quot; required
+                style=&quot;width:100%;padding:10px;margin:8px 0 16px;border:1px solid #ccc;&quot;&gt;
+            &lt;button type=&quot;submit&quot;
+                style=&quot;width:100%;padding:10px;background:#4f46e5;color:#fff;font-size:16px;&quot;&gt;เข้าสู่ระบบ&lt;/button&gt;
+        &lt;/form&gt;
+        &lt;p style=&quot;text-align:center;margin-top:16px;&quot;&gt;&lt;a href=&quot;forgot.php&quot; style=&quot;color:#4f46e5;&quot;&gt;ลืมรหัสผ่าน?&lt;/a&gt;&lt;/p&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+
+&lt;/html&gt;</pre><div class="fb"><div class="fn">4. ck_login.php <span class="bd">ตัวประมวลผล</span></div>
+<p><strong>หน้าที่:</strong> ตรวจสอบ username/password</p><p><strong>คำอธิบาย:</strong> รับ POST จากฟอร์ม Login (1) ค้นหา username ด้วย Prepared Statement ป้องกัน SQL Injection (2) ใช้ password_verify() ตรวจรหัสผ่านกับ hash (3) ถ้าถูกต้องเก็บ session แล้ว Admin→dashboard.php (4) ถ้าผิด redirect กลับ</p>
+<p><strong>บรรทัด:</strong> 50 | <strong>ขนาด:</strong> 1313 bytes</p></div><pre>&lt;?php
+include 'db.php';
+session_start();
+
+$username = $_POST['username'];
+$password = $_POST['password'];
+
+// เตรียมคำสั่ง SQL เพื่อตรวจสอบผู้ใช้
+$setsql = $conn-&gt;prepare(&quot;SELECT id, username, password , role FROM users WHERE username = ?&quot;); 
+
+$setsql-&gt;bind_param(&quot;s&quot;, $username);
+
+// ดำเนินการคำสั่ง SQL
+$setsql-&gt;execute();
+
+$result = $setsql-&gt;get_result();
+
+if($result-&gt;num_rows === 1){
+
+    $row  = $result-&gt;fetch_assoc();
+    
+    // ตรวจสอบรหัสผ่าน
+    if(password_verify($password, $row['password'])) {
+        $_SESSION['user_id']  = $row['id'];
+        $_SESSION['username'] = $username;
+        $_SESSION['role']     = $row['role'];
+
+
+        if($row['role'] === 'admin'){
+            header(&quot;Location: dashboard.php&quot;);
+            exit();
+        } else {
+            echo &quot;ไม่มีสิทธิ์เข้าใช้งาน&quot;;
+        }
+        exit();
+
+    } else {
+        echo &quot;ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง&quot;;
+    }
+} else {
+    header(&quot;Location: index.php&quot;);
+}
+
+// ปิดการเชื่อมต่อ
+$setsql-&gt;close();
+$conn-&gt;close();
+
+
+
+?&gt;</pre><div class="fb"><div class="fn">5. ck_logout.php <span class="bd">ตัวประมวลผล</span></div>
+<p><strong>หน้าที่:</strong> ออกจากระบบ</p><p><strong>คำอธิบาย:</strong> (1) session_unset() ลบตัวแปร session ทั้งหมด (2) session_destroy() ทำลาย session (3) redirect กลับหน้า Login</p>
+<p><strong>บรรทัด:</strong> 7 | <strong>ขนาด:</strong> 109 bytes</p></div><pre>&lt;?php
+session_start();
+session_unset();
+session_destroy();
+header(&quot;Location: ck_login.php&quot;);
+exit();
+?&gt;</pre><div class="fb"><div class="fn">6. forgot.php <span class="bd">หน้าเว็บ</span></div>
+<p><strong>หน้าที่:</strong> ลืมรหัสผ่าน + สร้าง Token</p><p><strong>คำอธิบาย:</strong> GET=แสดงฟอร์มกรอก username POST=ตรวจ username สร้าง token ด้วย bin2hex(random_bytes(32)) หมดอายุ 15 นาที บันทึกลง DB แสดงลิงก์ reset</p>
+<p><strong>บรรทัด:</strong> 74 | <strong>ขนาด:</strong> 3029 bytes</p></div><pre>&lt;?php
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    include 'db.php';
+    $username = $_POST['username'];
+    $stmt = $conn-&gt;prepare(&quot;SELECT id, username FROM users WHERE username = ?&quot;);
+    $stmt-&gt;bind_param(&quot;s&quot;, $username);
+    $stmt-&gt;execute();
+    $result = $stmt-&gt;get_result();
+    if ($result-&gt;num_rows !== 1) {
+        die(&quot;ไม่พบชื่อผู้ใช้ในระบบ&quot;);
+    }
+    $row = $result-&gt;fetch_assoc();
+    $token = bin2hex(random_bytes(32));
+    $expires = date(&quot;Y-m-d H:i:s&quot;, strtotime(&quot;+15 minutes&quot;));
+    $stmt = $conn-&gt;prepare(&quot;UPDATE users SET reset_token = ?, token_expire = ? WHERE id = ?&quot;);
+    $stmt-&gt;bind_param(&quot;ssi&quot;, $token, $expires, $row['id']);
+    $stmt-&gt;execute();
+    echo '&lt;body style=&quot;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;background:#f5f5f5;&quot;&gt;
+    &lt;div style=&quot;background:#fff;padding:30px;text-align:center;border:1px solid #ddd;&quot;&gt;
+        &lt;h2 style=&quot;margin-bottom:16px;&quot;&gt;ลิงก์รีเซ็ตรหัสผ่าน&lt;/h2&gt;
+        &lt;a href=&quot;reset_password.php?token=' . $token . '&quot; style=&quot;color:#007bff;&quot;&gt;คลิกที่นี่เพื่อรีเซ็ต&lt;/a&gt;
+    &lt;/div&gt;&lt;/body&gt;';
+    exit;
+}
+?&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;th&quot;&gt;
+
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1.0&quot;&gt;
+    &lt;title&gt;รีเซ็ตรหัสผ่าน&lt;/title&gt;
+    &lt;link href=&quot;https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+    &lt;style&gt;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: #f5f5f5
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            font-family: inherit
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+
+&lt;body style=&quot;display:flex;align-items:center;justify-content:center;min-height:100vh;&quot;&gt;
+    &lt;div style=&quot;background:#fff;padding:30px;width:360px;border:1px solid #ddd;&quot;&gt;
+        &lt;h2 style=&quot;text-align:center;margin-bottom:20px;&quot;&gt;รีเซ็ตรหัสผ่าน&lt;/h2&gt;
+        &lt;form action=&quot;&quot; method=&quot;post&quot;&gt;
+            &lt;label&gt;ชื่อผู้ใช้&lt;/label&gt;
+            &lt;input type=&quot;text&quot; name=&quot;username&quot; placeholder=&quot;กรอกชื่อผู้ใช้&quot; required
+                style=&quot;width:100%;padding:10px;margin:8px 0 16px;border:1px solid #ccc;&quot;&gt;
+            &lt;button type=&quot;submit&quot;
+                style=&quot;width:100%;padding:10px;background:#16a34a;color:#fff;font-size:16px;&quot;&gt;รีเซ็ตรหัสผ่าน&lt;/button&gt;
+        &lt;/form&gt;
+        &lt;p style=&quot;text-align:center;margin-top:16px;&quot;&gt;&lt;a href=&quot;index.php&quot; style=&quot;color:#16a34a;&quot;&gt;กลับไปเข้าสู่ระบบ&lt;/a&gt;
+        &lt;/p&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+
+&lt;/html&gt;</pre><div class="fb"><div class="fn">7. reset_password.php <span class="bd">หน้าเว็บ</span></div>
+<p><strong>หน้าที่:</strong> ตั้งรหัสผ่านใหม่</p><p><strong>คำอธิบาย:</strong> GET=ตรวจ token ว่ายังไม่หมดอายุ แสดงฟอร์ม POST=hash รหัสผ่านใหม่ด้วย password_hash() อัปเดต DB ลบ token (ใช้ได้ครั้งเดียว)</p>
+<p><strong>บรรทัด:</strong> 87 | <strong>ขนาด:</strong> 3601 bytes</p></div><pre>&lt;?php
+include 'db.php';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $token = $_POST['token'];
+    $pw = $_POST['password'];
+    $stmt = $conn-&gt;prepare(&quot;SELECT id FROM users WHERE reset_token = ? AND token_expire &gt; NOW()&quot;);
+    $stmt-&gt;bind_param(&quot;s&quot;, $token);
+    $stmt-&gt;execute();
+    $result = $stmt-&gt;get_result();
+    if ($result-&gt;num_rows !== 1) {
+        die(&quot;โทเค็นไม่ถูกต้องหรือหมดอายุ&quot;);
+    }
+    $row = $result-&gt;fetch_assoc();
+    $hash = password_hash($pw, PASSWORD_DEFAULT);
+    $stmt = $conn-&gt;prepare(&quot;UPDATE users SET password = ?, reset_token = NULL, token_expire = NULL WHERE id = ?&quot;);
+    $stmt-&gt;bind_param(&quot;si&quot;, $hash, $row['id']);
+    $stmt-&gt;execute();
+    echo '&lt;body style=&quot;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;background:#f5f5f5;&quot;&gt;
+    &lt;div style=&quot;background:#fff;padding:30px;text-align:center;border:1px solid #ddd;&quot;&gt;
+        &lt;h2 style=&quot;color:green;margin-bottom:12px;&quot;&gt;✅ ตั้งรหัสผ่านใหม่เรียบร้อย&lt;/h2&gt;
+        &lt;a href=&quot;index.php&quot; style=&quot;color:#007bff;&quot;&gt;กลับไปเข้าสู่ระบบ&lt;/a&gt;
+    &lt;/div&gt;&lt;/body&gt;';
+    exit;
+}
+?&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;th&quot;&gt;
+
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1.0&quot;&gt;
+    &lt;title&gt;ตั้งรหัสผ่านใหม่&lt;/title&gt;
+    &lt;link href=&quot;https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+    &lt;style&gt;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: #f5f5f5
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            font-family: inherit
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+
+&lt;body style=&quot;display:flex;align-items:center;justify-content:center;min-height:100vh;&quot;&gt;
+    &lt;div style=&quot;background:#fff;padding:30px;width:360px;border:1px solid #ddd;&quot;&gt;
+        &lt;?php
+        if (!isset($_GET['token'])) {
+            echo '&lt;p style=&quot;color:red;&quot;&gt;โทเค็นไม่ถูกต้อง&lt;/p&gt;';
+            exit;
+        }
+        $token = $_GET['token'];
+        $stmt = $conn-&gt;prepare(&quot;SELECT id FROM users WHERE reset_token = ? AND token_expire &gt; NOW()&quot;);
+        $stmt-&gt;bind_param(&quot;s&quot;, $token);
+        $stmt-&gt;execute();
+        if ($stmt-&gt;get_result()-&gt;num_rows !== 1) {
+            echo '&lt;p style=&quot;color:red;&quot;&gt;โทเค็นไม่ถูกต้องหรือหมดอายุ&lt;/p&gt;';
+            exit;
+        }
+        ?&gt;
+        &lt;h2 style=&quot;text-align:center;margin-bottom:20px;&quot;&gt;ตั้งรหัสผ่านใหม่&lt;/h2&gt;
+        &lt;form action=&quot;&quot; method=&quot;post&quot;&gt;
+            &lt;input type=&quot;hidden&quot; name=&quot;token&quot; value=&quot;&lt;?php echo htmlspecialchars($token); ?&gt;&quot;&gt;
+            &lt;label&gt;รหัสผ่านใหม่&lt;/label&gt;
+            &lt;input type=&quot;password&quot; name=&quot;password&quot; placeholder=&quot;กรอกรหัสผ่านใหม่&quot; required
+                style=&quot;width:100%;padding:10px;margin:8px 0 16px;border:1px solid #ccc;&quot;&gt;
+            &lt;button type=&quot;submit&quot;
+                style=&quot;width:100%;padding:10px;background:#2563eb;color:#fff;font-size:16px;&quot;&gt;ตั้งรหัสผ่านใหม่&lt;/button&gt;
+        &lt;/form&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+
+&lt;/html&gt;</pre><div class="fb"><div class="fn">8. dashboard.php <span class="bd">หน้าเว็บ (Admin)</span></div>
+<p><strong>หน้าที่:</strong> แดชบอร์ด Admin</p><p><strong>คำอธิบาย:</strong> ตรวจสิทธิ์ 2 ชั้น (login+admin) แสดงสถานะระบบ ตารางผู้ใช้ล่าสุด 5 คน ลิงก์ด่วนไปหน้าจัดการต่างๆ</p>
+<p><strong>บรรทัด:</strong> 82 | <strong>ขนาด:</strong> 3897 bytes</p></div><pre>&lt;?php
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    header(&quot;Location: index.php&quot;);
+    exit();
+}
+if ($_SESSION['role'] !== 'admin') {
+    header(&quot;Location: search.php&quot;);
+    exit();
+}
+include &quot;db.php&quot;;
+?&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;th&quot;&gt;
+
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1.0&quot;&gt;
+    &lt;title&gt;Dashboard&lt;/title&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.min.css&quot;&gt;
+    &lt;link href=&quot;https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
+    &lt;?php include 'sidebar.php'; ?&gt;
+    &lt;main class=&quot;main-content&quot; style=&quot;padding:20px;&quot;&gt;
+        &lt;h2 style=&quot;margin-bottom:20px;&quot;&gt;แดชบอร์ด&lt;/h2&gt;
+        &lt;p style=&quot;margin-bottom:20px;&quot;&gt;ยินดีต้อนรับ
+            &lt;?php echo htmlspecialchars($_SESSION['username'] ?? 'ผู้ดูแลระบบ'); ?&gt;
+        &lt;/p&gt;
+
+        &lt;!-- Stats --&gt;
+        &lt;div style=&quot;display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap;&quot;&gt;
+            &lt;div style=&quot;background:#fff;padding:20px;flex:1;min-width:150px;border:1px solid #ddd;&quot;&gt;
+                &lt;p style=&quot;color:#888;font-size:14px;&quot;&gt;สถานะระบบ&lt;/p&gt;
+                &lt;p style=&quot;font-size:24px;font-weight:700;color:green;&quot;&gt;✓ ปกติ&lt;/p&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;!-- Recent Users --&gt;
+        &lt;div style=&quot;background:#fff;padding:20px;border:1px solid #ddd;&quot;&gt;
+            &lt;h3 style=&quot;margin-bottom:16px;&quot;&gt;ผู้ใช้ล่าสุด&lt;/h3&gt;
+            &lt;table&gt;
+                &lt;tr style=&quot;border-bottom:2px solid #ddd;&quot;&gt;
+                    &lt;th style=&quot;text-align:left;padding:8px;&quot;&gt;#ID&lt;/th&gt;
+                    &lt;th style=&quot;text-align:left;padding:8px;&quot;&gt;ชื่อผู้ใช้&lt;/th&gt;
+                    &lt;th style=&quot;text-align:left;padding:8px;&quot;&gt;บทบาท&lt;/th&gt;
+                    &lt;th style=&quot;text-align:left;padding:8px;&quot;&gt;สถานะ&lt;/th&gt;
+                &lt;/tr&gt;
+                &lt;?php
+                $result = $conn-&gt;query(&quot;SELECT id, username, role FROM users WHERE deleted_at IS NULL ORDER BY id DESC LIMIT 5&quot;);
+                if ($result-&gt;num_rows &gt; 0) {
+                    while ($row = $result-&gt;fetch_assoc()) {
+                        $rt = $row['role'] === 'admin' ? 'ผู้ดูแลระบบ' : 'ผู้ใช้ปกติ';
+                        echo &quot;&lt;tr style='border-bottom:1px solid #eee;'&gt;
+                        &lt;td style='padding:8px;'&gt;#{$row['id']}&lt;/td&gt;
+                        &lt;td style='padding:8px;'&gt;{$row['username']}&lt;/td&gt;
+                        &lt;td style='padding:8px;'&gt;{$rt}&lt;/td&gt;
+                        &lt;td style='padding:8px;'&gt;ใช้งาน&lt;/td&gt;
+                    &lt;/tr&gt;&quot;;
+                    }
+                } else {
+                    echo &quot;&lt;tr&gt;&lt;td colspan='4' style='padding:16px;text-align:center;color:#888;'&gt;ไม่มีผู้ใช้&lt;/td&gt;&lt;/tr&gt;&quot;;
+                }
+                ?&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;
+
+        &lt;!-- Quick Links --&gt;
+        &lt;div style=&quot;margin-top:20px;background:#fff;padding:20px;border:1px solid #ddd;&quot;&gt;
+            &lt;h3 style=&quot;margin-bottom:12px;&quot;&gt;ลิงก์ด่วน&lt;/h3&gt;
+            &lt;a href=&quot;userlist.php&quot;
+                style=&quot;display:inline-block;padding:8px 16px;background:#7c3aed;color:#fff;margin-right:8px;&quot;&gt;จัดการผู้ใช้&lt;/a&gt;
+            &lt;a href=&quot;search.php&quot;
+                style=&quot;display:inline-block;padding:8px 16px;background:#2563eb;color:#fff;margin-right:8px;&quot;&gt;ค้นหาผู้ใช้&lt;/a&gt;
+            &lt;a href=&quot;Restore.php&quot;
+                style=&quot;display:inline-block;padding:8px 16px;background:#16a34a;color:#fff;&quot;&gt;คืนค่าผู้ใช้&lt;/a&gt;
+        &lt;/div&gt;
+    &lt;/main&gt;
+&lt;/body&gt;
+
+&lt;/html&gt;</pre><div class="fb"><div class="fn">9. search.php <span class="bd">หน้าเว็บ</span></div>
+<p><strong>หน้าที่:</strong> ค้นหาผู้ใช้</p><p><strong>คำอธิบาย:</strong> ใช้ได้ทั้ง admin และ user ค้นหาด้วย SQL LIKE (ค้นบางส่วนของชื่อได้) ใช้ Prepared Statement แสดงผลเป็นตารางไม่เกิน 10 รายการ</p>
+<p><strong>บรรทัด:</strong> 62 | <strong>ขนาด:</strong> 3140 bytes</p></div><pre>&lt;?php
+session_start();
+include &quot;db.php&quot;;
+if (!isset($_SESSION['user_id'])) {
+    header(&quot;Location: index.php&quot;);
+    exit();
+}
+?&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;th&quot;&gt;
+
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1.0&quot;&gt;
+    &lt;title&gt;ค้นหาผู้ใช้&lt;/title&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.min.css&quot;&gt;
+    &lt;link href=&quot;https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
+    &lt;?php include 'sidebar.php'; ?&gt;
+    &lt;main class=&quot;main-content&quot; style=&quot;padding:20px;&quot;&gt;
+        &lt;h2 style=&quot;margin-bottom:20px;&quot;&gt;ค้นหาผู้ใช้&lt;/h2&gt;
+        &lt;div style=&quot;background:#fff;padding:20px;border:1px solid #ddd;margin-bottom:20px;&quot;&gt;
+            &lt;form method=&quot;GET&quot; style=&quot;display:flex;gap:8px;&quot;&gt;
+                &lt;input type=&quot;text&quot; name=&quot;q&quot; placeholder=&quot;ค้นหาชื่อผู้ใช้...&quot;
+                    value=&quot;&lt;?php echo htmlspecialchars($_GET['q'] ?? ''); ?&gt;&quot;
+                    style=&quot;flex:1;padding:10px;border:1px solid #ccc;&quot;&gt;
+                &lt;button type=&quot;submit&quot; style=&quot;padding:10px 20px;background:#7c3aed;color:#fff;&quot;&gt;ค้นหา&lt;/button&gt;
+            &lt;/form&gt;
+        &lt;/div&gt;
+        &lt;?php
+        if (isset($_GET['q']) &amp;&amp; strlen(trim($_GET['q'])) &gt; 0) {
+            $q = trim($_GET['q']);
+            $stmt = $conn-&gt;prepare(&quot;SELECT id, username, role FROM users WHERE username LIKE ? AND deleted_at IS NULL LIMIT 10&quot;);
+            $s = &quot;%&quot; . $q . &quot;%&quot;;
+            $stmt-&gt;bind_param(&quot;s&quot;, $s);
+            $stmt-&gt;execute();
+            $result = $stmt-&gt;get_result();
+            echo '&lt;div style=&quot;background:#fff;padding:20px;border:1px solid #ddd;&quot;&gt;';
+            echo '&lt;h3 style=&quot;margin-bottom:12px;&quot;&gt;ผลการค้นหา (' . $result-&gt;num_rows . ' รายการ)&lt;/h3&gt;';
+            if ($result-&gt;num_rows &gt; 0) {
+                echo '&lt;table&gt;&lt;tr style=&quot;border-bottom:2px solid #ddd;&quot;&gt;
+                &lt;th style=&quot;text-align:left;padding:8px;&quot;&gt;#ID&lt;/th&gt;&lt;th style=&quot;text-align:left;padding:8px;&quot;&gt;ชื่อผู้ใช้&lt;/th&gt;
+                &lt;th style=&quot;text-align:left;padding:8px;&quot;&gt;บทบาท&lt;/th&gt;&lt;th style=&quot;text-align:left;padding:8px;&quot;&gt;สถานะ&lt;/th&gt;&lt;/tr&gt;';
+                while ($row = $result-&gt;fetch_assoc()) {
+                    $rt = $row['role'] === 'admin' ? 'ผู้ดูแลระบบ' : 'ผู้ใช้ปกติ';
+                    echo &quot;&lt;tr style='border-bottom:1px solid #eee;'&gt;&lt;td style='padding:8px;'&gt;#{$row['id']}&lt;/td&gt;
+                    &lt;td style='padding:8px;'&gt;{$row['username']}&lt;/td&gt;&lt;td style='padding:8px;'&gt;{$rt}&lt;/td&gt;
+                    &lt;td style='padding:8px;'&gt;ใช้งาน&lt;/td&gt;&lt;/tr&gt;&quot;;
+                }
+                echo '&lt;/table&gt;';
+            } else {
+                echo '&lt;p style=&quot;color:#888;&quot;&gt;ไม่พบผู้ใช้ที่ตรงกับการค้นหา&lt;/p&gt;';
+            }
+            echo '&lt;/div&gt;';
+        }
+        ?&gt;
+    &lt;/main&gt;
+&lt;/body&gt;
+
+&lt;/html&gt;</pre><div class="fb"><div class="fn">10. userlist.php <span class="bd">หน้าเว็บ (Admin)</span></div>
+<p><strong>หน้าที่:</strong> แสดง/ลบผู้ใช้</p><p><strong>คำอธิบาย:</strong> แสดงรายชื่อทั้งหมด + Soft Delete (ตั้ง deleted_at=NOW(), is_deleted=1) ห้ามลบตัวเอง ห้ามลบ admin</p>
+<p><strong>บรรทัด:</strong> 86 | <strong>ขนาด:</strong> 4059 bytes</p></div><pre>&lt;?php
+session_start();
+include &quot;db.php&quot;;
+if (!isset($_SESSION[&quot;role&quot;]) || $_SESSION[&quot;role&quot;] !== &quot;admin&quot;) {
+    echo &quot;Access denied.&quot;;
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST' &amp;&amp; isset($_POST['id']) &amp;&amp; is_numeric($_POST['id'])) {
+    if ($_SESSION[&quot;role&quot;] !== &quot;admin&quot;) {
+        die(&quot;Unauthorized access.&quot;);
+    }
+    $uid = intval($_POST[&quot;id&quot;]);
+    if ($uid == $_SESSION[&quot;user_id&quot;]) {
+        die(&quot;Invalid ID.&quot;);
+    }
+    $stmt = $conn-&gt;prepare(&quot;SELECT role FROM users WHERE id = ? AND deleted_at IS NULL&quot;);
+    $stmt-&gt;bind_param(&quot;i&quot;, $uid);
+    $stmt-&gt;execute();
+    $r = $stmt-&gt;get_result();
+    if ($r-&gt;num_rows === 0) {
+        die(&quot;User not found.&quot;);
+    }
+    if ($r-&gt;fetch_assoc()[&quot;role&quot;] === &quot;admin&quot;) {
+        die(&quot;Cannot delete admin.&quot;);
+    }
+    $del = $conn-&gt;prepare(&quot;UPDATE users SET deleted_at = NOW(), is_deleted = 1 WHERE id = ?&quot;);
+    $del-&gt;bind_param(&quot;i&quot;, $uid);
+    if ($del-&gt;execute()) {
+        header(&quot;Location: userlist.php&quot;);
+        exit();
+    }
+}
+$result = $conn-&gt;query(&quot;SELECT id, username, role FROM users WHERE deleted_at IS NULL&quot;);
+?&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;th&quot;&gt;
+
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1.0&quot;&gt;
+    &lt;title&gt;รายชื่อผู้ใช้&lt;/title&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.min.css&quot;&gt;
+    &lt;link href=&quot;https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
+    &lt;?php include 'sidebar.php'; ?&gt;
+    &lt;main class=&quot;main-content&quot; style=&quot;padding:20px;&quot;&gt;
+        &lt;h2 style=&quot;margin-bottom:20px;&quot;&gt;รายชื่อผู้ใช้ (&lt;?php echo $result-&gt;num_rows; ?&gt; คน)&lt;/h2&gt;
+        &lt;div style=&quot;background:#fff;padding:20px;border:1px solid #ddd;&quot;&gt;
+            &lt;table&gt;
+                &lt;tr style=&quot;border-bottom:2px solid #ddd;&quot;&gt;
+                    &lt;th style=&quot;text-align:left;padding:8px;&quot;&gt;ID&lt;/th&gt;
+                    &lt;th style=&quot;text-align:left;padding:8px;&quot;&gt;ชื่อผู้ใช้&lt;/th&gt;
+                    &lt;th style=&quot;text-align:left;padding:8px;&quot;&gt;บทบาท&lt;/th&gt;
+                    &lt;th style=&quot;text-align:left;padding:8px;&quot;&gt;จัดการ&lt;/th&gt;
+                &lt;/tr&gt;
+                &lt;?php if ($result-&gt;num_rows &gt; 0):
+                    while ($row = $result-&gt;fetch_assoc()):
+                        $rt = $row[&quot;role&quot;] === &quot;admin&quot; ? &quot;ผู้ดูแลระบบ&quot; : &quot;ผู้ใช้ปกติ&quot;; ?&gt;
+                        &lt;tr style=&quot;border-bottom:1px solid #eee;&quot;&gt;
+                            &lt;td style=&quot;padding:8px;&quot;&gt;#&lt;?php echo $row[&quot;id&quot;]; ?&gt;&lt;/td&gt;
+                            &lt;td style=&quot;padding:8px;&quot;&gt;&lt;?php echo htmlspecialchars($row[&quot;username&quot;]); ?&gt;&lt;/td&gt;
+                            &lt;td style=&quot;padding:8px;&quot;&gt;&lt;?php echo $rt; ?&gt;&lt;/td&gt;
+                            &lt;td style=&quot;padding:8px;&quot;&gt;
+                                &lt;?php if ($row[&quot;id&quot;] != $_SESSION[&quot;user_id&quot;] &amp;&amp; $row[&quot;role&quot;] !== &quot;admin&quot;): ?&gt;
+                                    &lt;form method=&quot;POST&quot; action=&quot;&quot; onsubmit=&quot;return confirm('ลบผู้ใช้นี้?');&quot;
+                                        style=&quot;display:inline;&quot;&gt;
+                                        &lt;input type=&quot;hidden&quot; name=&quot;id&quot; value=&quot;&lt;?php echo $row[&quot;id&quot;]; ?&gt;&quot;&gt;
+                                        &lt;button type=&quot;submit&quot; style=&quot;padding:6px 12px;background:#dc2626;color:#fff;&quot;&gt;ลบ&lt;/button&gt;
+                                    &lt;/form&gt;
+                                &lt;?php else:
+                                    echo '-';
+                                endif; ?&gt;
+                            &lt;/td&gt;
+                        &lt;/tr&gt;
+                    &lt;?php endwhile; else: ?&gt;
+                    &lt;tr&gt;
+                        &lt;td colspan=&quot;4&quot; style=&quot;padding:16px;text-align:center;color:#888;&quot;&gt;ไม่พบผู้ใช้&lt;/td&gt;
+                    &lt;/tr&gt;
+                &lt;?php endif; ?&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;
+    &lt;/main&gt;
+&lt;/body&gt;
+
+&lt;/html&gt;</pre><div class="fb"><div class="fn">11. Restore.php <span class="bd">หน้าเว็บ (Admin)</span></div>
+<p><strong>หน้าที่:</strong> คืนค่าผู้ใช้ที่ถูกลบ</p><p><strong>คำอธิบาย:</strong> แสดงผู้ใช้ที่ถูกลบ (deleted_at IS NOT NULL) กดคืนค่าจะตั้ง deleted_at=NULL ตรวจสิทธิ์ 2 ชั้นเหมือน dashboard</p>
+<p><strong>บรรทัด:</strong> 79 | <strong>ขนาด:</strong> 3657 bytes</p></div><pre>&lt;?php
+session_start();
+include &quot;db.php&quot;;
+if (!isset($_SESSION[&quot;user_id&quot;])) {
+    header(&quot;Location: index.php&quot;);
+    exit();
+}
+if ($_SESSION[&quot;role&quot;] !== &quot;admin&quot;) {
+    header(&quot;Location: search.php&quot;);
+    exit();
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST' &amp;&amp; isset($_POST['id']) &amp;&amp; is_numeric($_POST['id'])) {
+    $uid = intval($_POST[&quot;id&quot;]);
+    $stmt = $conn-&gt;prepare(&quot;SELECT id FROM users WHERE id = ? AND deleted_at IS NOT NULL&quot;);
+    $stmt-&gt;bind_param(&quot;i&quot;, $uid);
+    $stmt-&gt;execute();
+    if ($stmt-&gt;get_result()-&gt;num_rows === 0) {
+        header(&quot;Location: Restore.php&quot;);
+        exit();
+    }
+    $r = $conn-&gt;prepare(&quot;UPDATE users SET deleted_at = NULL WHERE id = ?&quot;);
+    $r-&gt;bind_param(&quot;i&quot;, $uid);
+    if ($r-&gt;execute()) {
+        header(&quot;Location: Restore.php&quot;);
+        exit();
+    }
+}
+$result = $conn-&gt;query(&quot;SELECT id, username, role FROM users WHERE deleted_at IS NOT NULL ORDER BY id DESC&quot;);
+?&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;th&quot;&gt;
+
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1.0&quot;&gt;
+    &lt;title&gt;คืนค่าผู้ใช้&lt;/title&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.min.css&quot;&gt;
+    &lt;link href=&quot;https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
+    &lt;?php include 'sidebar.php'; ?&gt;
+    &lt;main class=&quot;main-content&quot; style=&quot;padding:20px;&quot;&gt;
+        &lt;h2 style=&quot;margin-bottom:20px;&quot;&gt;ผู้ใช้ที่ถูกลบ&lt;/h2&gt;
+        &lt;div style=&quot;background:#fff;padding:20px;border:1px solid #ddd;&quot;&gt;
+            &lt;table&gt;
+                &lt;tr style=&quot;border-bottom:2px solid #ddd;&quot;&gt;
+                    &lt;th style=&quot;text-align:left;padding:8px;&quot;&gt;#ID&lt;/th&gt;
+                    &lt;th style=&quot;text-align:left;padding:8px;&quot;&gt;ชื่อผู้ใช้&lt;/th&gt;
+                    &lt;th style=&quot;text-align:left;padding:8px;&quot;&gt;บทบาท&lt;/th&gt;
+                    &lt;th style=&quot;text-align:left;padding:8px;&quot;&gt;จัดการ&lt;/th&gt;
+                &lt;/tr&gt;
+                &lt;?php if ($result-&gt;num_rows &gt; 0):
+                    while ($row = $result-&gt;fetch_assoc()):
+                        $rt = $row['role'] === 'admin' ? 'ผู้ดูแลระบบ' : 'ผู้ใช้ปกติ'; ?&gt;
+                        &lt;tr style=&quot;border-bottom:1px solid #eee;&quot;&gt;
+                            &lt;td style=&quot;padding:8px;&quot;&gt;#&lt;?php echo $row['id']; ?&gt;&lt;/td&gt;
+                            &lt;td style=&quot;padding:8px;&quot;&gt;&lt;?php echo $row['username']; ?&gt;&lt;/td&gt;
+                            &lt;td style=&quot;padding:8px;&quot;&gt;&lt;?php echo $rt; ?&gt;&lt;/td&gt;
+                            &lt;td style=&quot;padding:8px;&quot;&gt;
+                                &lt;form method=&quot;POST&quot; action=&quot;&quot; style=&quot;display:inline;&quot;
+                                    onsubmit=&quot;return confirm('คืนค่าผู้ใช้นี้?');&quot;&gt;
+                                    &lt;input type=&quot;hidden&quot; name=&quot;id&quot; value=&quot;&lt;?php echo $row['id']; ?&gt;&quot;&gt;
+                                    &lt;button type=&quot;submit&quot;
+                                        style=&quot;padding:6px 12px;background:#16a34a;color:#fff;&quot;&gt;คืนค่า&lt;/button&gt;
+                                &lt;/form&gt;
+                            &lt;/td&gt;
+                        &lt;/tr&gt;
+                    &lt;?php endwhile; else: ?&gt;
+                    &lt;tr&gt;
+                        &lt;td colspan=&quot;4&quot; style=&quot;padding:16px;text-align:center;color:#888;&quot;&gt;ไม่มีผู้ใช้ที่ถูกลบ&lt;/td&gt;
+                    &lt;/tr&gt;
+                &lt;?php endif; ?&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;
+    &lt;/main&gt;
+&lt;/body&gt;
+
+&lt;/html&gt;</pre><div class="fb"><div class="fn">12. get_user_stats.php <span class="bd">API</span></div>
+<p><strong>หน้าที่:</strong> สถิติผู้ใช้ JSON</p><p><strong>คำอธิบาย:</strong> API endpoint ส่ง JSON นับ total, admins, regular ตรวจสิทธิ์ Admin ก่อน</p>
+<p><strong>บรรทัด:</strong> 29 | <strong>ขนาด:</strong> 915 bytes</p></div><pre>&lt;?php
+header('Content-Type: application/json');
+include 'db.php';
+session_start();
+
+// ตรวจสอบสิทธิ์
+if(!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+    echo json_encode(['error' =&gt; 'Unauthorized']);
+    exit;
+}
+
+// ดึงจำนวนผู้ใช้ทั้งหมด
+$total_result = $conn-&gt;query(&quot;SELECT COUNT(*) as count FROM users WHERE deleted_at IS NULL&quot;);
+$total = $total_result-&gt;fetch_assoc()['count'];
+
+// ดึงจำนวนผู้ดูแลระบบ
+$admin_result = $conn-&gt;query(&quot;SELECT COUNT(*) as count FROM users WHERE role = 'admin' AND deleted_at IS NULL&quot;);
+$admins = $admin_result-&gt;fetch_assoc()['count'];
+
+// ดึงจำนวนผู้ใช้ทั่วไป
+$regular = $total - $admins;
+
+echo json_encode([
+    'total' =&gt; $total,
+    'admins' =&gt; $admins,
+    'regular' =&gt; $regular
+]);
+?&gt;
+</pre><div class="wb" style="margin-top:30px"><strong>วิธีทำเป็น PDF:</strong> เปิดไฟล์นี้ใน Browser → กด Ctrl+P → เลือก "Save as PDF" → กด Save</div></body></html>
